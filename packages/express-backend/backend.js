@@ -114,9 +114,9 @@ const delUser = (name) => {
     const { name } = req.body;  
     const deletedUser = delUser(name);
     if (deletedUser) {
-        res.status(200).send('User deleted successfully');
+        res.status(200).send('Deleted successfully');
       } else {
-        res.status(404).send('User not found');
+        res.status(404).send('Not found');
       }      
   });
   
