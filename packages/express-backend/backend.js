@@ -42,10 +42,53 @@ const users = {
         id: "zap555",
         name: "Dennis",
         job: "Bartender"
+      },
+      {
+        "id": "qwe123",
+        "job": "Zookeeper",
+        "name": "Cindy"
       }
     ]
   };
 
 app.get("/users", (req, res) => {
-res.send(users);
+    const name = req.query.name;
+    if (name != undefined) {
+        let result = findUserByName(name);
+        result = { users_list: result };
+        res.send(result);
+    } else {
+        res.send(users);
+    }
 });
+
+const findUserByName = (name) => {
+    return users["users_list"].filter(
+      (user) => user["name"] === name
+    );
+  };
+
+const findUserById = (id) =>
+  users["users_list"].find((user) => user["id"] === id);
+
+app.get("/users/:id", (req, res) => {
+  const id = req.params["id"]; //or req.params.id
+  let result = findUserById(id);
+  if (result === undefined) {
+    res.status(404).send("Resource not found.");
+  } else {
+    res.send(result);
+  }
+});
+
+const addUser = (user) => {
+    users["users_list"].push(user);
+    return user;
+  };
+  
+  app.post("/users", (req, res) => {
+    const userToAdd = req.body;
+    addUser(userToAdd);
+    res.send();
+  });
+  
