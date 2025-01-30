@@ -26,10 +26,19 @@ function MyApp() {
   const [characters, setCharacters] = useState ([]);
 
   function removeOneCharacter(index) {
-    const updated = characters.filter((character, i) => {
-      return i !== index;
-    });
-    setCharacters(updated);
+    const userToDelete = characters[index];
+    console.log(userToDelete);
+    fetch(`http://localhost:8000/users/${userToDelete.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: userToDelete.name }) // Send user name to delete
+    })
+    .then(res => {
+      const updated = characters.filter((character, i) => {
+        return i !== index;
+      });
+      setCharacters(updated);
+    })
   }
 
   function updateList(person) {
@@ -37,13 +46,14 @@ function MyApp() {
     postUser(person)
     .then(res => {
       if (res.status === 201) {
+        console.log(`Success: ${res.status}`);
         return res.json();
       } 
       else {
         throw new Error("Failed to add user");
       }
     })
-    .then(() => setCharacters([...characters, person]))
+    .then(data => setCharacters([...characters, data]))
     .catch((error) => {
       console.log(error);
     });

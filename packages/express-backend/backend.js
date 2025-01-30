@@ -94,17 +94,31 @@ app.get("/users/:id", (req, res) => {
   }
 });
 
+const getRandomLetter = () => {
+  let letter = String.fromCharCode(97 + Math.floor(Math.random() * 26));
+  return letter;
+}
+
+const genId = () => {
+  let idLtrs = getRandomLetter() + getRandomLetter() + getRandomLetter();
+  let idNums = Math.floor(Math.random() * (999 - 100 +1) + 100);
+  return String(idLtrs) + String(idNums);
+};
+
 const addUser = (user) => {
+    user.id = genId();
     users["users_list"].push(user);
     return user;
   };
+
   
 app.post("/users", (req, res) => {
   const userToAdd = req.body;
   const addedUser = addUser(userToAdd);
+  console.log(addedUser);
 
   if (addedUser) {
-    //Currently trying to test for error handling, need to change this to code to 200 to check for that
+    //was originally res.status(201).json(addedUser)
     res.status(201).json(addedUser);
   } else {
     res.status(500).send("Error adding user");
@@ -112,21 +126,21 @@ app.post("/users", (req, res) => {
   res.send();
 });
 
-const delUser = (name) => {
-    const index = users["users_list"].findIndex(user => user.name === name);
+const delUser = (id) => {
+    const index = users["users_list"].findIndex(user => user.id === id);
     if (index !== -1) {
       return users["users_list"].splice(index, 1); 
     }
     return null; 
   };
   
-  app.delete("/users", (req, res) => {
-    const { name } = req.body;  
-    const deletedUser = delUser(name);
+  app.delete("/users/:id", (req, res) => {
+    const id = req.params.id;  
+    const deletedUser = delUser(id);
     if (deletedUser) {
-        res.status(200).send('Deleted successfully');
+        res.status(204).end();
       } else {
-        res.status(404).send('Not found');
+        res.status(404).send('Resource Not Found');
       }      
   });
   
