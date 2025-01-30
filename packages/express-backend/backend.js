@@ -100,9 +100,16 @@ const addUser = (user) => {
   };
   
 app.post("/users", (req, res) => {
-const userToAdd = req.body;
-addUser(userToAdd);
-res.send();
+  const userToAdd = req.body;
+  const addedUser = addUser(userToAdd);
+
+  if (addedUser) {
+    //Currently trying to test for error handling, need to change this to code to 200 to check for that
+    res.status(201).json(addedUser);
+  } else {
+    res.status(500).send("Error adding user");
+  }
+  res.send();
 });
 
 const delUser = (name) => {

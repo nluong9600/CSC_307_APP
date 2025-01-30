@@ -35,6 +35,14 @@ function MyApp() {
   function updateList(person) {
     //old function used for adding characters?: setCharacters([...characters, person])
     postUser(person)
+    .then(res => {
+      if (res.status === 201) {
+        return res.json();
+      } 
+      else {
+        throw new Error("Failed to add user");
+      }
+    })
     .then(() => setCharacters([...characters, person]))
     .catch((error) => {
       console.log(error);
