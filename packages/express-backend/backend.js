@@ -61,11 +61,18 @@ app.get("/users", (req, res) => {
     }
 });
 
-const findUserByName = (name) => {
-    return users["users_list"].filter(
-      (user) => user["name"] === name
-    );
-  };
+function findUserByName(name) {
+  //need to call findUserByName in the user-services here and use "await" for it to connect to db and return the "promise" which in this case is the user by that name
+  return userModel.find({ name: name })
+    .then(user => {
+      if (user) return user;
+      throw new Error("User not found");
+    })
+    .catch(err => {
+      console.error(err);
+      throw err;
+    });
+}
 
 const findUserByNameAndJob = (name, job) => {
     return users["users_list"].filter(
@@ -81,8 +88,17 @@ app.get("/users/name-and-job", (req, res) => {
     } 
   });
 
-const findUserById = (id) =>
-  users["users_list"].find((user) => user["id"] === id);
+function findUserById(id) {
+    return userModel.findById(id)
+      .then(user => {
+        if (user) return user;
+        throw new Error("User not found");
+      })
+      .catch(err => {
+        console.error(err);
+        throw err;
+      });
+  }
 
 app.get("/users/:id", (req, res) => {
   const id = req.params["id"]; //or req.params.id
@@ -105,11 +121,12 @@ const genId = () => {
   return String(idLtrs) + String(idNums);
 };
 
-const addUser = (user) => {
-    user.id = genId();
-    users["users_list"].push(user);
-    return user;
-  };
+function addUser(user) {
+  const userToAdd = new userModel(user);
+  const promise = userToAdd.save();
+  return promise;
+}
+
 
   
 app.post("/users", (req, res) => {
