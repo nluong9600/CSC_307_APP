@@ -1,6 +1,9 @@
 // backend.js
 import express from "express";
 import cors from "cors";
+//import userService from "./services/user-service";
+import mongoose from "mongoose";
+import * as userService from "./services/user-service.js";
 
 const app = express();
 const port = 8000;
@@ -61,53 +64,39 @@ app.get("/users", (req, res) => {
     }
 });
 
-function findUserByName(name) {
-  //need to call findUserByName in the user-services here and use "await" for it to connect to db and return the "promise" which in this case is the user by that name
-  return userModel.find({ name: name })
-    .then(user => {
-      if (user) return user;
-      throw new Error("User not found");
-    })
-    .catch(err => {
-      console.error(err);
-      throw err;
-    });
-}
-
-const findUserByNameAndJob = (name, job) => {
+// Needs to be deprecated
+const findUserByName = (name) => {
     return users["users_list"].filter(
-        (user) => user["name"] === name && user["job"] === job
+      (user) => user["name"] === name
     );
-};
+  };
 
-app.get("/users/name-and-job", (req, res) => {
+//Get users by name and job DONE
+app.get("/users", (req, res) => {
     const { name, job } = req.query;  
-    if (name && job) {
-      const result = findUserByNameAndJob(name, job);  
-      res.json({ users_list: result });
-    } 
+    
+    userService.getUsers(name, job)
+      .then(users => {
+        if (!users.length) {
+          return res.status(404).json({message: 'No users found'});
+        }
+        res.json(users);
+      })
+      .catch(
+        error => res.status(500).json({ error: error.message})
+      );
   });
 
-function findUserById(id) {
-    return userModel.findById(id)
-      .then(user => {
-        if (user) return user;
-        throw new Error("User not found");
-      })
-      .catch(err => {
-        console.error(err);
-        throw err;
-      });
-  }
 
+// Get users by ID DONE
 app.get("/users/:id", (req, res) => {
-  const id = req.params["id"]; //or req.params.id
-  let result = findUserById(id);
-  if (result === undefined) {
-    res.status(404).send("Resource not found.");
-  } else {
-    res.send(result);
-  }
+  const { id } = req.params;
+  userService.findUserById(id)
+    .then(user => {
+      if (user) res.json(user);
+      else res.status(404).json({ error: "User not found" });
+    })
+    .catch(error => res.status(500).json({ error: error.message }));
 });
 
 const getRandomLetter = () => {
@@ -121,11 +110,6 @@ const genId = () => {
   return String(idLtrs) + String(idNums);
 };
 
-function addUser(user) {
-  const userToAdd = new userModel(user);
-  const promise = userToAdd.save();
-  return promise;
-}
 
 
   
@@ -143,6 +127,7 @@ app.post("/users", (req, res) => {
   res.send();
 });
 
+// Need to deprecate
 const delUser = (id) => {
     const index = users["users_list"].findIndex(user => user.id === id);
     if (index !== -1) {
@@ -151,13 +136,12 @@ const delUser = (id) => {
     return null; 
   };
   
-  app.delete("/users/:id", (req, res) => {
-    const id = req.params.id;  
-    const deletedUser = delUser(id);
-    if (deletedUser) {
-        res.status(204).end();
-      } else {
-        res.status(404).send('Resource Not Found');
-      }      
-  });
-  
+app.delete("/users/:id", (req, res) => {
+  const id = req.params.id;  
+  const deletedUser = delUser(id);
+  if (deletedUser) {
+      res.status(204).end();
+    } else {
+      res.status(404).send('Resource Not Found');
+    }      
+});
