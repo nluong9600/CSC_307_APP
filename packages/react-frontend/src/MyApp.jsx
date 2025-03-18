@@ -28,7 +28,7 @@ function MyApp() {
   function removeOneCharacter(index) {
     const userToDelete = characters[index];
     console.log(userToDelete);
-    fetch(`http://localhost:8000/users/${userToDelete.id}`, {
+    fetch(`http://localhost:8000/users/${userToDelete._id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: userToDelete.name }) // Send user name to delete
